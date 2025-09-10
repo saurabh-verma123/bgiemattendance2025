@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Management</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid black; padding: 5px; text-align: center; }
+    button { padding: 5px 10px; cursor: pointer; }
+    .present { background: lightgreen; }
+    .absent { background: lightcoral; }
+    .locked { background: #ddd; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h2>Attendance Sheet</h2>
+
+  <!-- Date Picker -->
+  <label>Select Date: </label>
+  <input type="date" id="datePicker">
+  <button onclick="addDateColumn()">Add Attendance Column</button>
+  <button onclick="exportToExcel()">Export to Excel</button>
+
+  <table id="attendanceTable">
+    <thead>
+      <tr id="headerRow">
+        <th>Enrollment No.</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot id="footerRow">
+      <tr>
+        <td colspan="2">Lock Attendance</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    // Student List
+    const students = [
+      ["0246AL241001","AARYAN GUPTA"],
+      ["0246AL241002","AASTHA GUPTA"],
+      ["0246AL241003","ABHAY TIWARI"],
+      ["0246AL241004","ABHI PATEL"],
+      ["0246AL241005","ABHINAV VISHWAKARMA"],
+      ["0246AL241006","ABHISHEK SHARMA"],
+      ["0246AL241007","ADARSH KOURAV"],
+      ["0246AL241008","ADITI AVADHESH NAMDEO"],
+      ["0246AL241009","ADITI JAIN"],
+      ["0246AL241010","ADITYA BARMAN"],
+      ["0246AL241011","ADITYA MEHTA"],
+      ["0246AL241012","ADITYA PATEL"],
+      ["0246AL241013","ADITYA PATEL"],
+      ["0246AL241014","ADITYA SWARNKAR"],
+      ["0246AL241015","AKASH DIGARSE"],
+      ["0246AL241016","AKSHAT PANDEY"],
+      ["0246AL241017","AKSHAT SARAF"],
+      ["0246AL241018","AKSHAT SHRIVASTAVA"],
+      ["0246AL241019","AKSHAT SONI"],
+      ["0246AL241020","ALEENA FATIMA KHAN"],
+      ["0246AL241021","AMAN BHUSHAN"],
+      ["0246AL241022","AMIT CHAKRAVARTY"],
+      ["0246AL241023","ANAND TIWARI"],
+      ["0246AL241024","ANANT CHOUDHARY"],
+      ["0246AL241025","ANIKET BELWAL MISHRA"],
+      ["0246AL241026","ANKITA KOL"],
+      ["0246AL241027","ANKITA SAHU"],
+      ["0246AL241028","ANMOL BEDI"],
+      ["0246AL241029","ANMOL RAWAT"],
+      ["0246AL241030","ANNIKA KAPOOR"],
+      ["0246AL241031","ANSHIKA BARMAIYA"],
+      ["0246AL241032","ANSHIKA SAHU"],
+      ["0246AL241033","ANSHUMAN GUPTA"],
+      ["0246AL241034","ANURAG KUMAR SINGH"],
+      ["0246AL241035","ANURAG VISHWAKARMA"],
+      ["0246AL241036","ANUSHKHA YADAV"],
+      ["0246AL241037","ARCH GUPTA"],
+      ["0246AL241038","ARCHIE PATEL"],
+      ["0246AL241039","ARMAN PATEL"],
+      ["0246AL241040","ARNAV SHAH"],
+      ["0246AL241041","AROHI JAIN"],
+      ["0246AL241042","ARPITA SONI"],
+      ["0246AL241043","ARUSH AARON JOSEPH"],
+      ["0246AL241045","ASHI PANDEY"],
+      ["0246AL241046","ASHISH CHOUDHARI"],
+      ["0246AL241047","ASHISH SONI"],
+      ["0246AL241048","ASHIT VISHWAKARMA"],
+      ["0246AL241049","ASHU CHOURASIA"],
+      ["0246AL241050","ATHARAV POAHARE"],
+      ["0246AL241051","AVANTIKA PARHOA"],
+      ["0246AL241052","AVIKA VISHWAKARMA"],
+      ["0246AL241053","AYUSH GARG"],
+      ["0246AL241054","AYUSH VISHWAKARMA"],
+      ["0246AL241055","AYUSHI CHOUKSEY"],
+      ["0246AL241056","AYUSHI PATEL"],
+      ["0246AL241057","AYUSHI PAWAR"],
+      ["0246AL241058","BHARTI LODHI"],
+      ["0246AL241059","BHASIT GUPTA"],
+      ["0246AL241060","BHAVANA SAHU"],
+      ["0246AL241061","BHOOMI PANDEY"],
+      ["0246AL241062","CHIRAG THAKUR"],
+      ["0246AL241063","DEEKSHA SONI"],
+      ["0246AL241064","DEEPAK KUMAR KUSHWAHA"],
+      ["0246AL241065","DEEPANAJLI PATHAK"],
+      ["0246AL241066","DHANANJAY DUBEY"],
+      ["0246AL241067","DHARA AHIRWAL"],
+      ["0246AL241068","DHRUV VISHWAKARMA"],
+      ["0246AL241069","DIVYA SHUKLA"],
+      ["0246AL241070","DOLLY RUSIYA"],
+      ["0246AL241071","DURGESH PATEL"],
+      ["0246AL241072","DURGESHWARI SAHU"],
+      ["0246AL241073","ESHAAN SHARMA"],
+      ["0246AL241074","ESHANT SINGH"],
+      ["0246AL241075","GARGI GUPTA"],
+      ["0246AL241076","HARIOM TIWARI"],
+      ["0246AL241077","HARSH ASHAR"],
+      ["0246AL241078","HARSH KUMAR"],
+      ["0246AL241079","HARSH MISHRA"],
+      ["0246AL241080","HARSH MONGA"],
+      ["0246AL241081","HARSH RANA"],
+      ["0246AL241082","HARSH THAKUR"],
+      ["0246AL241083","HARSH VARDHAN SONI"],
+      ["0246AL241084","HARSHAL JAIN"],
+      ["0246AL241085","HIMANSHU HALDKAR"],
+      ["0246AL241086","HIMANSHU PATEL"],
+      ["0246AL241087","HITESH SEN"],
+      ["0246AL241088","JANHVI SONI"],
+      ["0246AL241089","JANHWI MUDGAL"],
+      ["0246AL241090","JAY DUBEY"],
+      ["0246AL241091","JAYDEEP RAHANGDALE"],
+      ["0246AL241092","JIYA SAHU"],
+      ["0246AL241093","JUNAID KHAN"],
+      ["0246AL241094","KARTIK JAIN"],
+      ["0246AL241095","KARTIKEY MOURYA"],
+      ["0246AL241096","KHUSHBOO KOSHTA"],
+      ["0246AL241097","KISHAN KUMAR"],
+      ["0246AL241098","KISHAN NAMDEV"],
+      ["0246AL241099","KOMAL KAMAL"],
+      ["0246AL241100","KOUSHIK MEHRA"],
+      ["0246AL241101","KRISHNA MISHRA"],
+      ["0246AL241102","KUNAL NISHAD"],
+      ["0246AL241103","LUCKY FOUJDAR"],
+      ["0246AL241104","MANAS VAJPAYEE"],
+      ["0246AL241105","MANPREET SINGH NAG"],
+      ["0246AL241106","MANSI GUPTA"],
+      ["0246AL241107","MAYANK JHARIYA"],
+      ["0246AL241108","MAYANK KUMAR DUBEY"],
+      ["0246AL241109","MAYANK KUMAR UPADHYAY"],
+      ["0246AL241110","MAYANK RADKE"],
+      ["0246AL241111","MD SHAHID HUSAIN BEHANA"],
+      ["0246AL241112","MISTHY KOSHTA"],
+      ["0246AL241113","MOHAMMAD JASIM SHAIKH"],
+      ["0246AL241114","MOHIT DUBEY"],
+      ["0246AL241115","MOON KARMAKAR"],
+      ["0246AL241116","MUDIT SINGH"],
+      ["0246AL241117","NANDANI THAKUR"],
+      ["0246AL241118","NEVIT PARJAPAT"],
+      ["0246AL241119","NILESH KOSHTA"],
+      ["0246AL241121","OM PANDEY"],
+      ["0246AL241122","PALAK PATEL"],
+    ];
+
+    const tbody = document.getElementById("tableBody");
+    const headerRow = document.getElementById("headerRow");
+    const footerRow = document.getElementById("footerRow").rows[0];
+
+    // Initialize table with students
+    students.forEach(s => {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${s[0]}</td><td>${s[1]}</td>`;
+      tbody.appendChild(row);
+    });
+
+    // Add new date column
+    function addDateColumn() {
+      const date = document.getElementById("datePicker").value;
+      if (!date) {
+        alert("Please select a date");
+        return;
+      }
+
+      // Insert column header after Name (index 2)
+      const th = document.createElement("th");
+      th.textContent = date;
+      headerRow.insertBefore(th, headerRow.cells[2]);
+
+      // Insert lock button in footer
+      const lockTd = document.createElement("td");
+      const lockBtn = document.createElement("button");
+      lockBtn.textContent = "Lock " + date;
+      lockBtn.onclick = () => lockColumn(date);
+      lockTd.colSpan = 1;
+      footerRow.insertBefore(lockTd, footerRow.cells[2]);
+      lockTd.appendChild(lockBtn);
+
+      // Add attendance toggle for each student
+      [...tbody.rows].forEach(row => {
+        const td = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.textContent = "A";
+        btn.classList.add("absent");
+        btn.onclick = function () {
+          if (!btn.classList.contains("locked")) {
+            if (btn.textContent === "A") {
+              btn.textContent = "P";
+              btn.classList.remove("absent");
+              btn.classList.add("present");
+            } else {
+              btn.textContent = "A";
+              btn.classList.remove("present");
+              btn.classList.add("absent");
+            }
+          }
+        };
+        row.insertBefore(td, row.cells[2]);
+        td.appendChild(btn);
+      });
+    }
+
+    // Lock a column
+    function lockColumn(date) {
+      const colIndex = [...headerRow.cells].findIndex(c => c.textContent === date);
+      if (colIndex === -1) return;
+      [...tbody.rows].forEach(row => {
+        const btn = row.cells[colIndex].querySelector("button");
+        if (btn) {
+          btn.classList.add("locked");
+          btn.disabled = true;
+        }
+      });
+    }
+
+    // Export to Excel
+    function exportToExcel() {
+      const wb = XLSX.utils.table_to_book(document.getElementById("attendanceTable"));
+      XLSX.writeFile(wb, "Attendance.xlsx");
+    }
+  </script>
+</body>
+</html>
